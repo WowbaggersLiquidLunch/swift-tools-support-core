@@ -13,6 +13,37 @@ import XCTest
 
 class VersionTests: XCTestCase {
 	
+	func testVersionInitialization() {
+		let v0 = Version(0, 0, 0, prereleaseIdentifiers: [], buildMetadataIdentifiers: [])
+		XCTAssertEqual(v0.minor, 0)
+		XCTAssertEqual(v0.minor, 0)
+		XCTAssertEqual(v0.patch, 0)
+		XCTAssertEqual(v0.prereleaseIdentifiers, [])
+		XCTAssertEqual(v0.buildMetadataIdentifiers, [])
+		
+		let v1 = Version(1, 1, 2, prereleaseIdentifiers: ["3", "5"], buildMetadataIdentifiers: ["8", "13"])
+		XCTAssertEqual(v1.minor, 1)
+		XCTAssertEqual(v1.minor, 1)
+		XCTAssertEqual(v1.patch, 2)
+		XCTAssertEqual(v1.prereleaseIdentifiers, ["3", "5"])
+		XCTAssertEqual(v1.buildMetadataIdentifiers, ["8", "13"])
+		
+		XCTAssertEqual(
+			Version(3, 5, 8),
+			Version(3, 5, 8, prereleaseIdentifiers: [], buildMetadataIdentifiers: [])
+		)
+		
+		XCTAssertEqual(
+			Version(13, 21, 34, prereleaseIdentifiers: ["55"]),
+			Version(13, 21, 34, prereleaseIdentifiers: ["55"], buildMetadataIdentifiers: [])
+		)
+		
+		XCTAssertEqual(
+			Version(89, 144, 233, buildMetadataIdentifiers: ["377"]),
+			Version(89, 144, 233, prereleaseIdentifiers: [], buildMetadataIdentifiers: ["377"])
+		)
+	}
+	
 	func testVersionComparison() {
 		
 		// MARK: version core vs. version core
@@ -248,8 +279,58 @@ class VersionTests: XCTestCase {
         XCTAssertNotEqual(Set([Version(1,2,3)]), Set([Version(1,2,3, prereleaseIdentifiers: ["alpha"])]))
         XCTAssertEqual(Set([Version(1,2,3)]), Set([Version(1,2,3, buildMetadataIdentifiers: ["1011"])]))
     }
-
-    func testDescription() {
+	
+	func testCustomConversionFromVersionToString() {
+		
+		// MARK: Version.description
+		
+		XCTAssertEqual(Version(0, 0, 0).description, "0.0.0" as String)
+		XCTAssertEqual(Version(1, 2, 3).description, "1.2.3" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: [""]).description, "1.2.3-" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["", ""]).description, "1.2.3-." as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta1"]).description, "1.2.3-beta1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "1"]).description, "1.2.3-beta.1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "", "1"]).description, "1.2.3-beta..1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["be-ta", "", "1"]).description, "1.2.3-be-ta..1" as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: [""]).description, "1.2.3+" as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: ["", ""]).description, "1.2.3+." as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: ["beta1"]).description, "1.2.3+beta1" as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: ["beta", "1"]).description, "1.2.3+beta.1" as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: ["beta", "", "1"]).description, "1.2.3+beta..1" as String)
+		XCTAssertEqual(Version(1, 2, 3, buildMetadataIdentifiers: ["be-ta", "", "1"]).description, "1.2.3+be-ta..1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: [""], buildMetadataIdentifiers: [""]).description, "1.2.3-+" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["", ""], buildMetadataIdentifiers: ["", "-", ""]).description, "1.2.3-.+.-." as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta1"], buildMetadataIdentifiers: ["alpha1"]).description, "1.2.3-beta1+alpha1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "1"], buildMetadataIdentifiers: ["alpha", "1"]).description, "1.2.3-beta.1+alpha.1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "", "1"], buildMetadataIdentifiers: ["alpha", "", "1"]).description, "1.2.3-beta..1+alpha..1" as String)
+		XCTAssertEqual(Version(1, 2, 3, prereleaseIdentifiers: ["be-ta", "", "1"], buildMetadataIdentifiers: ["al-pha", "", "1"]).description, "1.2.3-be-ta..1+al-pha..1" as String)
+		
+		// MARK: String interpolation
+		
+		XCTAssertEqual("\(Version(0, 0, 0))", "0.0.0" as String)
+		XCTAssertEqual("\(Version(1, 2, 3))", "1.2.3" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: [""]))", "1.2.3-" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["", ""]))", "1.2.3-." as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta1"]))", "1.2.3-beta1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "1"]))", "1.2.3-beta.1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "", "1"]))", "1.2.3-beta..1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["be-ta", "", "1"]))", "1.2.3-be-ta..1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: [""]))", "1.2.3+" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: ["", ""]))", "1.2.3+." as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: ["beta1"]))", "1.2.3+beta1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: ["beta", "1"]))", "1.2.3+beta.1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: ["beta", "", "1"]))", "1.2.3+beta..1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, buildMetadataIdentifiers: ["be-ta", "", "1"]))", "1.2.3+be-ta..1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: [""], buildMetadataIdentifiers: [""]))", "1.2.3-+" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["", ""], buildMetadataIdentifiers: ["", "-", ""]))", "1.2.3-.+.-." as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta1"], buildMetadataIdentifiers: ["alpha1"]))", "1.2.3-beta1+alpha1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "1"], buildMetadataIdentifiers: ["alpha", "1"]))", "1.2.3-beta.1+alpha.1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["beta", "", "1"], buildMetadataIdentifiers: ["alpha", "", "1"]))", "1.2.3-beta..1+alpha..1" as String)
+		XCTAssertEqual("\(Version(1, 2, 3, prereleaseIdentifiers: ["be-ta", "", "1"], buildMetadataIdentifiers: ["al-pha", "", "1"]))", "1.2.3-be-ta..1+al-pha..1" as String)
+		
+	}
+	
+    func testAdditionalCustomConversionFromVersionToString() {
         let v: Version = "123.234.345-alpha.beta+sha1.1011"
         XCTAssertEqual(v.description, "123.234.345-alpha.beta+sha1.1011")
         XCTAssertEqual(v.major, 123)
@@ -303,6 +384,29 @@ class VersionTests: XCTestCase {
 		
 		XCTAssertNotNil(Version("0.0.0-beta.-42+42-42.42" as String))
 		XCTAssertEqual(Version("0.0.0-beta.-42+42-42.42" as String), Version(0, 0, 0, prereleaseIdentifiers: ["beta", "-42"], buildMetadataIdentifiers: ["42-42", "42"]))
+		
+	}
+	
+	func testExpressingVersionByStringLiteral() {
+		
+		// MARK: Well-formed version core
+		
+		XCTAssertEqual("0.0.0" as Version, Version(0, 0, 0))
+		XCTAssertEqual("1.1.2" as Version, Version(1, 1, 2))
+		
+		// MARK: Well-formed version core, well-formed pre-release identifiers
+		
+		XCTAssertEqual("0.0.0-pre-alpha" as Version, Version(0, 0, 0, prereleaseIdentifiers: ["pre-alpha"]))
+		XCTAssertEqual("55.89.144-beta.1" as Version, Version(55, 89, 144, prereleaseIdentifiers: ["beta", "1"]))
+		XCTAssertEqual("89.144.233-a.whole..lot.of.pre-release.identifiers" as Version, Version(89, 144, 233, prereleaseIdentifiers: ["a", "whole", "", "lot", "of", "pre-release", "identifiers"]))
+		XCTAssertEqual("144.233.377-" as Version, Version(144, 233, 377, prereleaseIdentifiers: [""]))
+		
+		// MARK: Well-formed version core, well-formed build metadata identifiers
+		
+		XCTAssertEqual("0.0.0+some-metadata" as Version, Version(0, 0, 0, buildMetadataIdentifiers: ["some-metadata"]))
+		XCTAssertEqual("4181.6765.10946+more.meta..more.data" as Version, Version(4181, 6765, 10946, buildMetadataIdentifiers: ["more", "meta", "", "more", "data"]))
+		XCTAssertEqual("6765.10946.17711+-a-very--long---build-----metadata--------identifier-------------with---------------------many----------------------------------hyphens-------------------------------------------------------" as Version, Version(6765, 10946, 17711, buildMetadataIdentifiers: ["-a-very--long---build-----metadata--------identifier-------------with---------------------many----------------------------------hyphens-------------------------------------------------------"]))
+		XCTAssertEqual("10946.17711.28657+" as Version, Version(10946, 17711, 28657, buildMetadataIdentifiers: [""]))
 		
 	}
 	
