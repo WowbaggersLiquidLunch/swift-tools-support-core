@@ -79,7 +79,7 @@ def main():
     add_global_args(parser_clean)
 
     # build
-    parser_build = subparsers.add_parser("build", help="builds TSC using CMake")
+    parser_build = subparsers.add_parser("build", help="builds SwiftPM and runtime libraries")
     parser_build.set_defaults(func=build)
     add_build_args(parser_build)
 
